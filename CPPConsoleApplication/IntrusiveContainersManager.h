@@ -30,6 +30,8 @@ private:
 	PhonebookWrapper::set_type* set;
 
 public:
-	bool addItem(phonebook_entry& entry);
-	int getSize();
+	bool AddItem(phonebook_entry& entry);
+	int  GetSize();
+	bool Find(phonebook_entry& entry);
+	void Rehash();
 };
