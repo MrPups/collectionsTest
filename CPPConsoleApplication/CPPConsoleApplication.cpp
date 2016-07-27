@@ -2,6 +2,10 @@
 //
 
 #include "stdafx.h"
+
+#include "MessageStructures.h"
+#include "IntrusiveContainersManager.h"
+
 #include <string>
 #include <iostream>
 #include <chrono>
@@ -16,23 +20,6 @@
 using namespace boost::multi_index;
 using namespace std;
 
-struct phonebook_entry
-{
-	int a;
-	int b;
-	std::string item_name;
-
-	phonebook_entry()
-	{}
-
-	phonebook_entry(
-		int _a,
-		int _b,
-		std::string _item_name) :
-		a(_a), b(_b), item_name(_item_name)
-	{}
-};
-
 #pragma region Multiindex container
 
 // define a multi_index_container with a composite key on
@@ -46,9 +33,6 @@ typedef multi_index_container<
 				member<phonebook_entry, int, &phonebook_entry::a>,
 				member<phonebook_entry, int, &phonebook_entry::b>
 			>
-		>,
-		ordered_unique< // unique as numbers belong to only one subscriber
-			member<phonebook_entry, std::string, &phonebook_entry::item_name>
 		>
 	>
 > phonebook;
@@ -70,7 +54,7 @@ void InitializeContainer(phonebook& book, int instrumentCount = 1000, int orders
 			itemName += itoa(j, buf, 10);
 			
 			std::chrono::high_resolution_clock::time_point start = std::chrono::high_resolution_clock::now();
-			book.insert(phonebook_entry(i, j, itemName));
+			book.insert(phonebook_entry(i, j));
 			std::chrono::high_resolution_clock::time_point end = std::chrono::high_resolution_clock::now();
 
 			__int64 current = std::chrono::duration_cast<std::chrono::nanoseconds>(end - start).count();
@@ -147,7 +131,7 @@ void InitializeContainer(UnorderedContainer& book, int instrumentCount = 1000, i
 			itemName += itoa(j, buf, 10);
 
 			std::chrono::high_resolution_clock::time_point start = std::chrono::high_resolution_clock::now();
-			book[i].insert(InternalUnorderedContainer::value_type(j, phonebook_entry(i, j, itemName)));
+			book[i].insert(InternalUnorderedContainer::value_type(j, phonebook_entry(i, j)));
 			std::chrono::high_resolution_clock::time_point end = std::chrono::high_resolution_clock::now();
 
 			__int64 current = std::chrono::duration_cast<std::chrono::nanoseconds>(end - start).count();
@@ -239,7 +223,7 @@ void TestRemoveItem(UnorderedContainer& book, int instrumentCount = 1000, int or
 
 int main(int argc, char* argv[])
 {
-	if (argc != 3)
+	/*if (argc != 3)
 		return 1;
 
 	phonebook book;
@@ -257,7 +241,18 @@ int main(int argc, char* argv[])
 
 	// unordered maps
 	InitializeContainer(unBook, instruments, orders);
-	TestRandomAccess(unBook, instruments, orders);
+	TestRandomAccess(unBook, instruments, orders);*/
+
+	IntrusiveContainersManager manager(10);
+
+	std::vector<phonebook_entry> v;
+	for(int i=0; i<20; i++ )
+		v.push_back(phonebook_entry(i%2, i));
+
+	for (std::vector<phonebook_entry>::iterator it= v.begin(); it != v.end(); it++)
+		manager.addItem(*it);
+
+	std::cout << manager.getSize() << std::endl;
 
 	system("PAUSE");
 
